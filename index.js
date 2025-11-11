@@ -39,6 +39,10 @@ async function run() {
 
     const db = client.db('studyMateDB');
     const partnersCollection = db.collection('all-partners');
+    const connectionsCollection = db.collection('connections');
+
+
+    // Partners related api  
 
    app.get('/find-partners', async (req, res)=>{
       const cursor = partnersCollection.find();
@@ -63,7 +67,20 @@ async function run() {
    });
 
 
-   
+    // Connections related api
+
+    app.get('/my-connections', async (req, res) =>{
+         
+    });
+
+    app.post('/my-connection', async (req, res) =>{
+        const newData = req.body;
+        const result = await connectionsCollection.insertOne(newData);
+        res.send(result);
+    })
+
+
+
 
 
     
