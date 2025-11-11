@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -37,12 +37,37 @@ async function run() {
     
     await client.connect();
 
+    const db = client.db('studyMateDB');
+    const partnersCollection = db.collection('all-partners');
+
+   app.get('/find-partners', async (req, res)=>{
+      const cursor = partnersCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+   });
 
 
+   app.get('/top-partners', async (req, res)=>{
+    
+      const cursor = partnersCollection.find().sort({rating: -1}).limit(6);
+      const result = await cursor.toArray();
+      res.send(result);
+   });
+
+
+   app.get('/partner-details/:id', async (req, res)=>{
+      const id = req.params.id;
+      const query = new ObjectId(id);
+      const result = await partnersCollection.findOne(query);
+      res.send(result);
+   });
+
+
+   
 
 
     
-    // await client.db("admin").command({ ping: 1 });
+    await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     
