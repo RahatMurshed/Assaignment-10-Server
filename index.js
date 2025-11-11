@@ -70,14 +70,21 @@ async function run() {
     // Connections related api
 
     app.get('/my-connections', async (req, res) =>{
-         
+         const email = req.query.email;
+         const query = {};
+         if(email){
+            query.email = email;
+         }
+         const cursor = connectionsCollection.find(query);
+         const result = await cursor.toArray();
+         res.send(result);
     });
 
     app.post('/my-connection', async (req, res) =>{
         const newData = req.body;
         const result = await connectionsCollection.insertOne(newData);
         res.send(result);
-    })
+    });
 
 
 
