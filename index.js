@@ -67,6 +67,13 @@ async function run() {
    });
 
 
+   app.post('/create-profile', async (req, res)=>{
+      const newData = req.body;
+      const result = await partnersCollection.insertOne(newData);
+      res.send(result);
+   })
+
+
     // Connections related api
 
     app.get('/my-connections', async (req, res) =>{
