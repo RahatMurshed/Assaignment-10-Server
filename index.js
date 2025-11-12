@@ -76,11 +76,12 @@ async function run() {
 
     app.patch('/increament/:id', async (req, res) => {
       const id = req.params.id;
+      const {change} = req.body; 
 
       const query = { _id: new ObjectId(id) }
       const update = {
 
-        $inc: { patnerCount: 1 }
+        $inc: { patnerCount: change }
 
       };
       const result = await partnersCollection.updateOne(query, update);
@@ -106,6 +107,15 @@ async function run() {
       const result = await connectionsCollection.insertOne(newData);
       res.send(result);
     });
+
+
+    app.delete('/delete-connection/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await connectionsCollection.deleteOne(query);
+      res.send(result);
+
+    })
 
 
 
