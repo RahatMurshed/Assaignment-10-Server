@@ -34,7 +34,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    
+
     await client.connect();
 
     const db = client.db('studyMateDB');
@@ -44,64 +44,82 @@ async function run() {
 
     // Partners related api  
 
-   app.get('/find-partners', async (req, res)=>{
+    app.get('/find-partners', async (req, res) => {
       const cursor = partnersCollection.find();
       const result = await cursor.toArray();
       res.send(result);
-   });
+    });
 
 
-   app.get('/top-partners', async (req, res)=>{
-    
-      const cursor = partnersCollection.find().sort({rating: -1}).limit(6);
+    app.get('/top-partners', async (req, res) => {
+
+      const cursor = partnersCollection.find().sort({ rating: -1 }).limit(3);
       const result = await cursor.toArray();
       res.send(result);
-   });
+    });
 
 
-   app.get('/partner-details/:id', async (req, res)=>{
+    app.get('/partner-details/:id', async (req, res) => {
       const id = req.params.id;
-      const query = new ObjectId(id);
+      const query = { _id: new ObjectId(id) };
       const result = await partnersCollection.findOne(query);
       res.send(result);
-   });
+    });
 
 
-   app.post('/create-profile', async (req, res)=>{
+    app.post('/create-profile', async (req, res) => {
       const newData = req.body;
       const result = await partnersCollection.insertOne(newData);
       res.send(result);
-   })
+    })
+
+
+    app.patch('/increament/:id', async (req, res) => {
+      const id = req.params.id;
+
+      const query = { _id: new ObjectId(id) }
+      const update = {
+
+        $inc: { patnerCount: 1 }
+
+      };
+      const result = await partnersCollection.updateOne(query, update);
+      res.send(result);
+    })
 
 
     // Connections related api
 
-    app.get('/my-connections', async (req, res) =>{
-         const email = req.query.email;
-         const query = {};
-         if(email){
-            query.email = email;
-         }
-         const cursor = connectionsCollection.find(query);
-         const result = await cursor.toArray();
-         res.send(result);
+    app.get('/my-connections', async (req, res) => {
+      const email = req.query.email;
+      const query = {};
+      if (email) {
+        query.email = email;
+      }
+      const cursor = connectionsCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
     });
 
-    app.post('/my-connection', async (req, res) =>{
-        const newData = req.body;
-        const result = await connectionsCollection.insertOne(newData);
-        res.send(result);
+    app.post('/my-connection', async (req, res) => {
+      const newData = req.body;
+      const result = await connectionsCollection.insertOne(newData);
+      res.send(result);
     });
 
 
 
 
 
-    
+
+
+
+
+
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
-    
+
     // await client.close();
   }
 }
@@ -110,11 +128,11 @@ run().catch(console.dir);
 
 
 app.get('/', (req, res) => {
-    res.send("Assaignment 10 Server is Running");
+  res.send("Assaignment 10 Server is Running");
 });
 
 
 
-app.listen(port, ()=>{
-    console.log('Assaignment 10 server is running on ', port);
+app.listen(port, () => {
+  console.log('Assaignment 10 server is running on ', port);
 });
