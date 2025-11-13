@@ -40,14 +40,38 @@ async function run() {
     const db = client.db('studyMateDB');
     const partnersCollection = db.collection('all-partners');
     const connectionsCollection = db.collection('connections');
+    const studyMateUserCollection = db.collection('studyMateUser');
+
+
+
+
+    // user related api
+
+    app.post('/user', async (req, res)=>{
+        const newData = req.body;
+        const result = await studyMateUserCollection.insertOne(newData);
+        res.send(result);
+    })
 
 
     // Partners related api  
 
     app.get('/find-partners', async (req, res) => {
-      const cursor = partnersCollection.find();
-      const result = await cursor.toArray();
-      res.send(result);
+      try {
+        const rawSearch = req.query.search || '';
+        const search = rawSearch.trim();
+        const sortOrder = req.query.sort === 'desc' ? -1 : 1;
+
+        // Only search by subject (case-insensitive). If search is empty, return all documents.
+        const query = search ? { subject: { $regex: search, $options: 'i' } } : {};
+
+        const cursor = partnersCollection.find(query).sort({ experienceLevel: sortOrder });
+        const result = await cursor.toArray();
+        res.send(result);
+      } catch (err) {
+        console.error('/find-partners error:', err);
+        res.status(500).send({ error: 'Failed to search partners' });
+      }
     });
 
 
@@ -74,14 +98,14 @@ async function run() {
     })
 
 
-    app.patch('/increament/:id', async (req, res) => {
+    app.patch('/updateCount/:id', async (req, res) => {
       const id = req.params.id;
-      const {change} = req.body; 
+      const { change } = req.body;
 
       const query = { _id: new ObjectId(id) }
       const update = {
 
-        $inc: { patnerCount: change }
+        $inc: { partnerCount: change }
 
       };
       const result = await partnersCollection.updateOne(query, update);
@@ -107,6 +131,23 @@ async function run() {
       const result = await connectionsCollection.insertOne(newData);
       res.send(result);
     });
+
+
+    app.patch('/update-connection/:id', async (req, res) => {
+      const id = req.params.id;
+      const updatedData = req.body;
+      const query = { _id: new ObjectId(id) }
+      const update = {
+        $set: {
+          name: updatedData.name,
+          subject: updatedData.subject,
+          studyMode: updatedData.studyMode
+
+        }
+      }
+      const result = await connectionsCollection.updateOne(query, update);
+      res.send(result);
+    })
 
 
     app.delete('/delete-connection/:id', async (req, res) => {
