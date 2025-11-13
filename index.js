@@ -45,13 +45,28 @@ async function run() {
 
 
 
-    // user related api
+    // user related api 
 
-    app.post('/user', async (req, res)=>{
-        const newData = req.body;
-        const result = await studyMateUserCollection.insertOne(newData);
-        res.send(result);
-    })
+    app.post('/user', async (req, res) => {
+      
+        const user = req.body;
+        if (!user || !user.email) {
+          return res.status(400).send({ error: 'Please provide user object with email.' });
+        }
+
+      
+        const existing = await studyMateUserCollection.findOne({ email: user.email });
+        if (existing) {
+          
+          return res.status(200).send({ inserted: false, message: 'User already exists', user: existing });
+        }
+
+        
+        const result = await studyMateUserCollection.insertOne(user);
+        res.send(result)
+      
+     
+    });
 
 
     // Partners related api  
@@ -62,7 +77,6 @@ async function run() {
         const search = rawSearch.trim();
         const sortOrder = req.query.sort === 'desc' ? -1 : 1;
 
-        // Only search by subject (case-insensitive). If search is empty, return all documents.
         const query = search ? { subject: { $regex: search, $options: 'i' } } : {};
 
         const cursor = partnersCollection.find(query).sort({ experienceLevel: sortOrder });
@@ -77,7 +91,7 @@ async function run() {
 
     app.get('/top-partners', async (req, res) => {
 
-      const cursor = partnersCollection.find().sort({ rating: -1 }).limit(3);
+      const cursor = partnersCollection.find().sort({ rating: -1 }).limit(6);
       const result = await cursor.toArray();
       res.send(result);
     });
@@ -100,6 +114,7 @@ async function run() {
 
     app.patch('/updateCount/:id', async (req, res) => {
       const id = req.params.id;
+      console.log(id)
       const { change } = req.body;
 
       const query = { _id: new ObjectId(id) }
